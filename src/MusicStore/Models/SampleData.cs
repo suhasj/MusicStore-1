@@ -41,6 +41,19 @@ namespace MusicStore.Web.Models
             await AddOrUpdateAsync(serviceProvider, g => g.GenreId, genres);
             await AddOrUpdateAsync(serviceProvider, a => a.ArtistId, artists);
             await AddOrUpdateAsync(serviceProvider, a => a.AlbumId, albums);
+            
+            //Defer loading more data
+            Task.Factory.StartNew(() => InsertTestDataMore(serviceProvider));
+        }
+        
+        private static async Task InsertTestDataMore(IServiceProvider serviceProvider)
+        {
+            var genres = GetGenres();
+            var artists = GetArtistsMore();
+            var albums = GetAlbumsMore(imgUrl, genres, artists);
+
+            await AddOrUpdateAsync(serviceProvider, a => a.ArtistId, artists);
+            await AddOrUpdateAsync(serviceProvider, a => a.AlbumId, albums);
         }
 
         // TODO [EF] This may be replaced by a first class mechanism in EF
@@ -72,9 +85,9 @@ namespace MusicStore.Web.Models
         private static List<Album> GetAlbums(string imgUrl, List<Genre> genres, List<Artist> artists)
         {
             var albums = new List<Album>();
+
             albums.Add(new Album { Title = "The Best Of The Men At Work", Genre = genres.Single(g => g.Name == "Pop"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Men At Work"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "...And Justice For All", Genre = genres.Single(g => g.Name == "Metal"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Metallica"), AlbumArtUrl = imgUrl });
-            albums.Add(new Album { Title = "עד גבול האור", Genre = genres.Single(g => g.Name == "World"), Price = 8.99M, Artist = artists.Single(a => a.Name == "אריק אינשטיין"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "Black Light Syndrome", Genre = genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Terry Bozzio, Tony Levin & Steve Stevens"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "10,000 Days", Genre = genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Tool"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "11i", Genre = genres.Single(g => g.Name == "Electronic"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Supreme Beings of Leisure"), AlbumArtUrl = imgUrl });
@@ -83,6 +96,24 @@ namespace MusicStore.Web.Models
             albums.Add(new Album { Title = "A Copland Celebration, Vol. I", Genre = genres.Single(g => g.Name == "Classical"), Price = 8.99M, Artist = artists.Single(a => a.Name == "London Symphony Orchestra"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "A Lively Mind", Genre = genres.Single(g => g.Name == "Electronic"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Paul Oakenfold"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "A Matter of Life and Death", Genre = genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Iron Maiden"), AlbumArtUrl = imgUrl });
+
+            // TODO [EF] Swap to store generated keys when available
+            int albumId = 1;
+            foreach (var album in albums)
+            {
+                album.AlbumId = albumId++;
+                album.ArtistId = album.Artist.ArtistId;
+                album.GenreId = album.Genre.GenreId;
+            }
+
+            return albums;
+        }
+
+        private static List<Album> GetAlbumsMore(string imgUrl, List<Genre> genres, List<Artist> artists)
+        {
+            var albums = new List<Album>();
+
+            albums.Add(new Album { Title = "עד גבול האור", Genre = genres.Single(g => g.Name == "World"), Price = 8.99M, Artist = artists.Single(a => a.Name == "אריק אינשטיין"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "A Real Dead One", Genre = genres.Single(g => g.Name == "Metal"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Iron Maiden"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "A Real Live One", Genre = genres.Single(g => g.Name == "Metal"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Iron Maiden"), AlbumArtUrl = imgUrl });
             albums.Add(new Album { Title = "A Rush of Blood to the Head", Genre = genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Coldplay"), AlbumArtUrl = imgUrl });
@@ -536,7 +567,7 @@ namespace MusicStore.Web.Models
             albums.Add(new Album { Title = "Zoso", Genre = genres.Single(g => g.Name == "Rock"), Price = 8.99M, Artist = artists.Single(a => a.Name == "Led Zeppelin"), AlbumArtUrl = imgUrl });
 
             // TODO [EF] Swap to store generated keys when available
-            int albumId = 1;
+            int albumId = 11;
             foreach (var album in albums)
             {
                 album.AlbumId = albumId++;
@@ -548,6 +579,32 @@ namespace MusicStore.Web.Models
         }
 
         private static List<Artist> GetArtists()
+        {
+            var artists = new List<Artist>
+            {
+                new Artist { Name = "Men At Work" },
+                new Artist { Name = "Metallica" },
+                new Artist { Name = "Terry Bozzio, Tony Levin & Steve Stevens" },
+                new Artist { Name = "Tool" },
+                new Artist { Name = "Supreme Beings of Leisure" },
+                new Artist { Name = "Soul-Junk" },
+                new Artist { Name = "deadmau5" },
+                new Artist { Name = "London Symphony Orchestra" },
+                new Artist { Name = "Paul Oakenfold" },
+                new Artist { Name = "Iron Maiden" }
+            };
+
+            // TODO [EF] Swap to store generated keys when available
+            int artistId = 1;
+            foreach (var artist in artists)
+            {
+                artist.ArtistId = artistId++;
+            }
+
+            return artists;
+        }
+
+        private static List<Artist> GetArtistsMore()
         {
             var artists = new List<Artist>
             {
@@ -857,7 +914,7 @@ namespace MusicStore.Web.Models
             };
 
             // TODO [EF] Swap to store generated keys when available
-            int artistId = 1;
+            int artistId = 11;
             foreach (var artist in artists)
             {
                 artist.ArtistId = artistId++;
